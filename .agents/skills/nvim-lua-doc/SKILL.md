@@ -131,6 +131,8 @@ end
 
 ### Deprecated Functions
 
+Mark functions that shouldn't be used with migration paths:
+
 ```lua
 ---@deprecated Use M.new_process() instead
 function M.old_process(name)
@@ -143,7 +145,89 @@ function M.new_process(name)
 end
 ```
 
+#### Complex Migration Example
+
+```lua
+---Execute a command (deprecated)
+---@deprecated Use M.execute_command(opts) instead. Old function signature
+---   is preserved for backward compatibility but will be removed in v2.0.
+---   Migration: execute_command({ cmd = cmd, timeout = 5000 })
+---@param cmd string The command to execute
+---@param timeout number Timeout in milliseconds
+function M.run_command(cmd, timeout)
+  vim.notify("M.run_command() is deprecated, use M.execute_command()", vim.log.levels.WARN)
+  return M.execute_command({ cmd = cmd, timeout = timeout })
+end
+
+---Execute a command with options
+---@class CommandOptions
+---@field cmd string The command to execute
+---@field timeout number|nil Optional timeout
+---@field callback function|nil Optional callback
+
+---@param opts CommandOptions Configuration options
+function M.execute_command(opts)
+  -- new implementation
+end
+```
+
+### Partial Classes for Optional Config
+
+Use `(partial)` for user-facing configuration where all fields are optional:
+
+```lua
+---User configuration (all fields optional)
+---@class (partial) PluginConfig
+---@field timeout number|nil
+---@field enabled boolean|nil
+
+---Internal configuration (guaranteed values)
+---@class PluginInternalConfig
+---@field timeout number
+---@field enabled boolean
+```
+
+#### Config Pattern Example
+
+```lua
+---Default configuration values
+---@class PluginConfigDefaults
+---@field timeout number
+---@field enabled boolean
+
+---User-provided config (all fields optional)
+---@class (partial) PluginUserConfig
+---@field timeout number|nil
+---@field enabled boolean|nil
+
+---@type PluginConfigDefaults
+local defaults = {
+  timeout = 5000,
+  enabled = true,
+}
+
+---@diagnostic disable: missing-fields
+---@type PluginConfigDefaults
+local config = vim.tbl_deep_extend("force", defaults, user_config or {})
+---@diagnostic enable: missing-fields
+```
+
+### Module Annotations
+
+Always annotate module files at the top:
+
+```lua
+---@module "plugin.module"
+local M = {}
+```
+
+This helps the LSP understand the module name for better completions and navigation.
+
 ### Diagnostic Suppression
+
+Use `@diagnostic disable` to suppress intentional warnings, always re-enable after:
+
+#### Missing Fields
 
 ```lua
 ---@diagnostic disable: missing-fields
@@ -157,6 +241,46 @@ return {
   }
 }
 ---@diagnostic enable: missing-fields
+```
+
+#### Unused Variables
+
+```lua
+---@diagnostic disable: unused
+local function callback_handler(err, result)
+  -- Callback signature required by API but err not used
+  return result
+end
+---@diagnostic enable: unused
+```
+
+#### Parameter Type Mismatch
+
+```lua
+---@diagnostic disable: param-type-mismatch
+-- vim.fn expects different types than Lua knows
+local output = vim.fn.system(cmd, args)
+---@diagnostic enable: param-type-mismatch
+```
+
+#### Multiple Diagnostics
+
+```lua
+---@diagnostic disable-next-line: unused, missing-fields
+local config = { timeout = 5000 }
+```
+
+#### vim.g Type Annotations
+
+Annotate global Neovim configuration variables:
+
+```lua
+---Plugin global configuration
+---@type PluginConfig|nil
+vim.g.plugin_name = {
+  timeout = 5000,
+  enabled = true,
+}
 ```
 
 ## EmmyLua Tag Reference

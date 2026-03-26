@@ -154,6 +154,33 @@ vim.api.nvim_create_autocmd('LspAttach', {
 })
 ```
 
+### <Plug> Mappings for User Customization
+
+**Why use <Plug>?**
+- Allows users to customize keybindings
+- Plugin defines functionality, user defines keys
+- Follows Vim/Neovim conventions
+
+**Pattern:**
+```lua
+vim.keymap.set("n", "<Plug>(PluginNameAction)", function()
+  require("plugin")._ensure_initialized()
+  require("plugin.module").action()
+end, { silent = true })
+```
+
+**User binding:**
+```lua
+vim.keymap.set("n", "<leader>p", "<Plug>(PluginNameAction)")
+```
+
+**Checking existing mappings:**
+```lua
+if not vim.fn.hasmapto("<Plug>(PluginNameAction)") then
+  vim.keymap.set("n", "<leader>p", "<Plug>(PluginNameAction)")
+end
+```
+
 ## Common Patterns
 
 ### Multi-Mode Keymap

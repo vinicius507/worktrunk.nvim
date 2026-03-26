@@ -186,6 +186,57 @@ end
 return M
 ```
 
+## Lazy Require Patterns
+
+### Deferred Module Loading
+
+Load modules inside functions rather than at the top level:
+
+**Anti-pattern (eager loading):**
+```lua
+-- Loads at startup even if function never called
+local heavy_module = require("heavy.module")
+
+function M.do_something()
+  heavy_module.action()  -- Already loaded
+end
+```
+
+**Pattern (lazy loading):**
+```lua
+function M.do_something()
+  -- Only loads when function is called
+  local heavy_module = require("heavy.module")
+  heavy_module.action()
+end
+```
+
+### Conditional Loading with pcall
+
+```lua
+function M.safe_operation()
+  local ok, module = pcall(require, "optional.module")
+  if not ok then
+    vim.notify("Optional module not available")
+    return
+  end
+  module.operation()
+end
+```
+
+### Cached Lazy Values
+
+```lua
+local cached_value = nil
+
+function M.get_expensive_value()
+  if not cached_value then
+    cached_value = expensive_computation()
+  end
+  return cached_value
+end
+```
+
 ## Best Practices
 
 - Use `local M = {}` at the start of every module
