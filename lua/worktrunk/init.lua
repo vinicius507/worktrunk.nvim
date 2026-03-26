@@ -31,10 +31,11 @@ function M.setup(opts)
 end
 
 ---List all worktrees
+---@param opts table|nil
 ---@return table[]
-function M.list()
+function M.list(opts)
   M._ensure_initialized()
-  return require("worktrunk.core").list()
+  return require("worktrunk.core").list(opts)
 end
 
 ---Switch to a worktree
@@ -46,14 +47,22 @@ function M.switch(branch, opts)
   return require("worktrunk.core").switch(branch, opts)
 end
 
----Create a new worktree
----@param branch string
----@param base string|nil
+---Merge current branch into target
+---@param target string|nil
 ---@param opts table|nil
 ---@return boolean
-function M.create(branch, base, opts)
+function M.merge(target, opts)
   M._ensure_initialized()
-  return require("worktrunk.core").create(branch, base, opts)
+  return require("worktrunk.core").merge(target, opts)
+end
+
+---Run a step command
+---@param subcommand string
+---@param opts table|nil
+---@return boolean
+function M.step(subcommand, opts)
+  M._ensure_initialized()
+  return require("worktrunk.core").step(subcommand, opts)
 end
 
 ---Remove a worktree

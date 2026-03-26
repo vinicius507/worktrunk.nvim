@@ -59,9 +59,29 @@ local function exec(args)
 end
 
 ---List all worktrees
+---@param opts table|nil
 ---@return worktrunk.Worktree[]
-function M.list()
-  local result = exec({ "list", "--format", "json" })
+function M.list(opts)
+  opts = opts or {}
+  local args = { "list", "--format", "json" }
+
+  if opts.branches then
+    table.insert(args, "--branches")
+  end
+
+  if opts.remotes then
+    table.insert(args, "--remotes")
+  end
+
+  if opts.full then
+    table.insert(args, "--full")
+  end
+
+  if opts.progressive then
+    table.insert(args, "--progressive")
+  end
+
+  local result = exec(args)
 
   if result.code ~= 0 then
     return {}
@@ -157,6 +177,70 @@ function M.current()
   end
 
   return nil
+end
+
+---Merge current branch into target
+---@param target string|nil
+---@param opts table|nil
+---@return boolean
+function M.merge(target, opts)
+  opts = opts or {}
+  local args = { "merge" }
+
+  if target then
+    table.insert(args, target)
+  end
+
+  if opts.no_squash then
+    table.insert(args, "--no-squash")
+  end
+
+  if opts.no_commit then
+    table.insert(args, "--no-commit")
+  end
+
+  if opts.no_rebase then
+    table.insert(args, "--no-rebase")
+  end
+
+  if opts.no_remove then
+    table.insert(args, "--no-remove")
+  end
+
+  if opts.no_ff then
+    table.insert(args, "--no-ff")
+  end
+
+  if opts.stage then
+    table.insert(args, "--stage=" .. opts.stage)
+  end
+
+  if opts.yes then
+    table.insert(args, "--yes")
+  end
+
+  if opts.no_verify then
+    table.insert(args, "--no-verify")
+  end
+
+  local result = exec(args)
+  return result.code == 0
+end
+
+---Run a step command
+---@param subcommand string
+---@param opts table|nil
+---@return boolean
+function M.step(subcommand, opts)
+  opts = opts or {}
+  local args = { "step", subcommand }
+
+  if opts.stage then
+    table.insert(args, "--stage=" .. opts.stage)
+  end
+
+  local result = exec(args)
+  return result.code == 0
 end
 
 return M
