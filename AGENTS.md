@@ -15,8 +15,14 @@ make test
 # Run specific test file
 make test-file file=spec/core_spec.lua
 
+# Run specific test by name pattern
+make test-file file=spec/core_spec.lua -- -t "should call wt switch"
+
 # Run tests with coverage
 make test-coverage
+
+# Run tests in current Neovim (for debugging)
+make test-debug
 
 # Lint with luacheck
 make lint
@@ -82,6 +88,11 @@ end
 - Parse error messages from CLI tools using pattern matching
 - Return error type strings (e.g., "branch_not_found", "worktree_exists")
 
+### Async Patterns
+- Use `vim.system()` for external command execution
+- Wrap async calls in `pcall()` for error handling
+- Use `:wait()` to get synchronous results when needed
+
 ### Testing (Busted)
 - Test files: `spec/*_spec.lua`
 - Use `describe()` and `it()` blocks
@@ -111,23 +122,36 @@ end)
 - Use `vim.notify()` for user messages
 - Use `vim.validate()` for config validation
 - Use `vim.tbl_deep_extend()` for table merging
+- Use `vim.json.encode/decode` for JSON handling
 
 ### Project Structure
 ```
 lua/worktrunk/
-  init.lua       # Main module, public API
-  core.lua       # Core business logic
-  config/        # Configuration
-    init.lua     # Config module
-  commands.lua   # Command implementations
-  health.lua     # Health check
+  init.lua          # Main module, public API
+  core.lua          # Backward compatibility shim
+  commands.lua      # Command implementations (deprecated)
+  commands/
+    init.lua        # Command registration
+  config/
+    init.lua        # Configuration setup
+    meta.lua        # Config type definitions
+    internal.lua    # Internal config state
+  api/
+    cli.lua         # CLI API wrapper
+  util/
+    error.lua       # Error handling utilities
+    path.lua        # Path utilities
+  ui/
+    picker.lua      # UI picker integration
+    notify.lua      # Notification utilities
+  health.lua        # Health check
 
 plugin/
-  worktrunk.lua  # User commands, keymaps
+  worktrunk.lua     # User commands, keymaps
 
-spec/            # Test files
-  *_spec.lua     # Busted tests
-  helpers.lua    # Test utilities
+spec/               # Test files
+  *_spec.lua        # Busted tests
+  helpers.lua       # Test utilities
 ```
 
 ### Key Principles
@@ -137,3 +161,8 @@ spec/            # Test files
 - Mock external dependencies (wt CLI) in tests
 - Never commit secrets or credentials
 - All files must pass luacheck and stylua
+
+### External Dependencies
+- **worktrunk CLI**: External binary `wt` must be installed
+- **Neovim**: Version 0.9+ required
+- **Lua**: Version 5.1 for compatibility
