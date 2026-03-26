@@ -138,40 +138,6 @@ describe("worktrunk.core", function()
     end)
   end)
 
-  describe("create", function()
-    it("should call wt switch --create command", function()
-      local mock_result = {
-        code = 0,
-        stdout = "Created worktree for new-branch",
-        stderr = "",
-      }
-
-      local restore = helpers.mock_vim_system(mock_result)
-
-      local success = core.create("new-branch")
-
-      assert.is_true(success)
-
-      restore()
-    end)
-
-    it("should support base branch option", function()
-      local mock_result = {
-        code = 0,
-        stdout = "Created worktree for hotfix from main",
-        stderr = "",
-      }
-
-      local restore = helpers.mock_vim_system(mock_result)
-
-      local success = core.create("hotfix", "main")
-
-      assert.is_true(success)
-
-      restore()
-    end)
-  end)
-
   describe("remove", function()
     it("should call wt remove command", function()
       local mock_result = {
@@ -247,6 +213,126 @@ describe("worktrunk.core", function()
       assert.is_nil(current)
 
       vim.fn.getcwd = original_getcwd
+      restore()
+    end)
+  end)
+
+  describe("merge", function()
+    it("should call wt merge command", function()
+      local mock_result = {
+        code = 0,
+        stdout = "Merged feature-branch into main",
+        stderr = "",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.merge("main")
+
+      assert.is_true(success)
+
+      restore()
+    end)
+
+    it("should support merge flags", function()
+      local mock_result = {
+        code = 0,
+        stdout = "Merged with flags",
+        stderr = "",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.merge("develop", {
+        no_squash = true,
+        no_ff = true,
+        stage = "tracked",
+      })
+
+      assert.is_true(success)
+
+      restore()
+    end)
+
+    it("should return false on error", function()
+      local mock_result = {
+        code = 1,
+        stdout = "",
+        stderr = "Merge failed: conflicts detected",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.merge("main")
+
+      assert.is_false(success)
+
+      restore()
+    end)
+  end)
+
+  describe("step", function()
+    it("should call wt step commit command", function()
+      local mock_result = {
+        code = 0,
+        stdout = "Committed changes",
+        stderr = "",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.step("commit", {})
+
+      assert.is_true(success)
+
+      restore()
+    end)
+
+    it("should call wt step squash command", function()
+      local mock_result = {
+        code = 0,
+        stdout = "Squashed commits",
+        stderr = "",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.step("squash", {})
+
+      assert.is_true(success)
+
+      restore()
+    end)
+
+    it("should support stage option", function()
+      local mock_result = {
+        code = 0,
+        stdout = "Committed with stage=tracked",
+        stderr = "",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.step("commit", { stage = "tracked" })
+
+      assert.is_true(success)
+
+      restore()
+    end)
+
+    it("should return false on error", function()
+      local mock_result = {
+        code = 1,
+        stdout = "",
+        stderr = "Step failed",
+      }
+
+      local restore = helpers.mock_vim_system(mock_result)
+
+      local success = core.step("commit", {})
+
+      assert.is_false(success)
+
       restore()
     end)
   end)
