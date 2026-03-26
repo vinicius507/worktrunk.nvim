@@ -4,35 +4,10 @@ describe("worktrunk.core", function()
 
   before_each(function()
     package.loaded["worktrunk.core"] = nil
-    package.loaded["worktrunk.config"] = nil
-    require("worktrunk.config").setup()
+    package.loaded["worktrunk.api.cli"] = nil
+    package.loaded["worktrunk.config.internal"] = nil
+    require("worktrunk.config.internal").setup()
     core = require("worktrunk.core")
-  end)
-
-  describe("parse_list", function()
-    it("should parse worktree list output", function()
-      local output = "main ~/projects/myrepo\nfeature-branch ~/projects/myrepo.feature-branch\n"
-      local worktrees = core.parse_list(output)
-
-      assert.are.equal(2, #worktrees)
-      assert.are.equal("main", worktrees[1].branch)
-      assert.are.equal("~/projects/myrepo", worktrees[1].path)
-      assert.are.equal("feature-branch", worktrees[2].branch)
-      assert.are.equal("~/projects/myrepo.feature-branch", worktrees[2].path)
-    end)
-
-    it("should handle empty output", function()
-      local worktrees = core.parse_list("")
-      assert.are.equal(0, #worktrees)
-    end)
-
-    it("should handle single worktree", function()
-      local output = "main ~/projects/myrepo\n"
-      local worktrees = core.parse_list(output)
-
-      assert.are.equal(1, #worktrees)
-      assert.are.equal("main", worktrees[1].branch)
-    end)
   end)
 
   describe("parse_error", function()
@@ -175,44 +150,31 @@ describe("worktrunk.core", function()
   describe("current", function()
     it("should return current worktree", function()
       local mock_result = helpers.mock_wt_list_output({
-        { branch = "main", path = "/home/user/project" },
-        { branch = "feature", path = "/home/user/project.feature" },
+        { branch = "main", path = "/home/user/project", is_current = true },
+        { branch = "feature", path = "/home/user/project.feature", is_current = false },
       })
 
       local restore = helpers.mock_vim_system(mock_result)
-
-      -- Mock vim.fn.getcwd to return the path
-      local original_getcwd = vim.fn.getcwd
-      vim.fn.getcwd = function()
-        return "/home/user/project"
-      end
 
       local current = core.current()
 
       assert.is_not_nil(current)
       assert.are.equal("main", current.branch)
 
-      vim.fn.getcwd = original_getcwd
       restore()
     end)
 
     it("should return nil if not in a worktree", function()
       local mock_result = helpers.mock_wt_list_output({
-        { branch = "main", path = "/home/user/project" },
+        { branch = "main", path = "/home/user/project", is_current = false },
       })
 
       local restore = helpers.mock_vim_system(mock_result)
-
-      local original_getcwd = vim.fn.getcwd
-      vim.fn.getcwd = function()
-        return "/home/user/other"
-      end
 
       local current = core.current()
 
       assert.is_nil(current)
 
-      vim.fn.getcwd = original_getcwd
       restore()
     end)
   end)

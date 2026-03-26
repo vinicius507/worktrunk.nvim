@@ -31,7 +31,7 @@ function M._check_cli()
 end
 
 function M._check_config()
-  local ok, config = pcall(require, "worktrunk.config")
+  local ok, config = pcall(require, "worktrunk.config.internal")
   if not ok then
     vim.health.warn("Configuration module not loaded (will use defaults)")
     return

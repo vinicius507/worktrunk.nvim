@@ -1,103 +1,26 @@
 ---@module "worktrunk.core"
+---Backward compatibility shim - delegates to api.cli
+---DEPRECATED: Use require("worktrunk.api.cli") instead
+
+local cli = require("worktrunk.api.cli")
 local M = {}
-
----@class worktrunk.Commit
----@field sha string
----@field short_sha string
----@field message string
----@field timestamp number
-
----@class worktrunk.WorkingTree
----@field staged boolean
----@field modified boolean
----@field untracked boolean
----@field renamed boolean
----@field deleted boolean
----@field diff { added: number, deleted: number }
-
----@class worktrunk.Worktree
----@field branch string
----@field path string
----@field kind string "worktree" or "branch"
----@field commit worktrunk.Commit|nil
----@field working_tree worktrunk.WorkingTree|nil
----@field main_state string|nil
----@field is_main boolean
----@field is_current boolean
----@field is_previous boolean
----@field symbols string
 
 ---Parse error from stderr
 ---@param stderr string|nil
 ---@return string
 function M.parse_error(stderr)
-  if not stderr then
-    return "unknown"
-  end
-
-  if stderr:match("branch.*not found") then
-    return "branch_not_found"
-  elseif stderr:match("worktree already exists") then
-    return "worktree_exists"
-  elseif stderr:match("uncommitted changes") then
-    return "dirty_worktree"
-  end
-
-  return "unknown"
-end
-
----Execute a worktrunk command
----@param args string[]
----@return table result
-local function exec(args)
-  local config = require("worktrunk.config").get()
-  local wt_cmd = config and config.wt_cmd or "wt"
-  local cmd = vim.list_extend({ wt_cmd }, args)
-
-  local result = vim.system(cmd, { text = true }):wait()
-  return result
+  return require("worktrunk.util.error").parse_error(stderr)
 end
 
 ---List all worktrees
 ---@param opts table|nil
 ---@return worktrunk.Worktree[]
 function M.list(opts)
-  opts = opts or {}
-  local args = { "list", "--format", "json" }
-
-  if opts.branches then
-    table.insert(args, "--branches")
-  end
-
-  if opts.remotes then
-    table.insert(args, "--remotes")
-  end
-
-  if opts.full then
-    table.insert(args, "--full")
-  end
-
-  if opts.progressive then
-    table.insert(args, "--progressive")
-  end
-
-  local result = exec(args)
-
-  if result.code ~= 0 then
-    return {}
-  end
-
-  if not result.stdout or result.stdout == "" then
-    return {}
-  end
-
-  local ok, worktrees = pcall(vim.json.decode, result.stdout)
+  local ok, result = cli.list(opts)
   if not ok then
-    vim.notify("worktrunk: failed to parse list output", vim.log.levels.ERROR)
     return {}
   end
-
-  return worktrees
+  return result
 end
 
 ---Switch to a worktree
@@ -105,31 +28,8 @@ end
 ---@param opts table|nil
 ---@return boolean
 function M.switch(branch, opts)
-  opts = opts or {}
-  local args = { "switch", branch }
-
-  if opts.create then
-    table.insert(args, 2, "--create")
-  end
-
-  local result = exec(args)
-  if result.code ~= 0 then
-    return false
-  end
-
-  -- Change to the worktree directory using :tcd (tab cd)
-  local config = require("worktrunk.config").get()
-  if config and config.auto_cd then
-    local worktrees = M.list()
-    for _, w in ipairs(worktrees) do
-      if w.branch == branch or branch:match("^" .. w.branch) then
-        vim.cmd("tcd " .. vim.fn.fnameescape(w.path))
-        break
-      end
-    end
-  end
-
-  return true
+  local ok, _ = cli.switch(branch, opts)
+  return ok
 end
 
 ---Create a new worktree
@@ -138,15 +38,8 @@ end
 ---@param opts table|nil
 ---@return boolean
 function M.create(branch, base, opts)
-  opts = opts or {}
-  local args = { "switch", "--create", branch }
-
-  if base then
-    table.insert(args, "--base=" .. base)
-  end
-
-  local result = exec(args)
-  return result.code == 0
+  local ok, _ = cli.create(branch, base, opts)
+  return ok
 end
 
 ---Remove a worktree
@@ -154,29 +47,18 @@ end
 ---@param opts table|nil
 ---@return boolean
 function M.remove(branch, opts)
-  opts = opts or {}
-  local args = { "remove", branch }
-
-  if opts.force then
-    table.insert(args, "--force")
-  end
-
-  local result = exec(args)
-  return result.code == 0
+  local ok, _ = cli.remove(branch, opts)
+  return ok
 end
 
 ---Get current worktree
 ---@return worktrunk.Worktree|nil
 function M.current()
-  local worktrees = M.list()
-
-  for _, worktree in ipairs(worktrees) do
-    if worktree.is_current then
-      return worktree
-    end
+  local ok, result = cli.current()
+  if not ok then
+    return nil
   end
-
-  return nil
+  return result
 end
 
 ---Merge current branch into target
@@ -184,47 +66,8 @@ end
 ---@param opts table|nil
 ---@return boolean
 function M.merge(target, opts)
-  opts = opts or {}
-  local args = { "merge" }
-
-  if target then
-    table.insert(args, target)
-  end
-
-  if opts.no_squash then
-    table.insert(args, "--no-squash")
-  end
-
-  if opts.no_commit then
-    table.insert(args, "--no-commit")
-  end
-
-  if opts.no_rebase then
-    table.insert(args, "--no-rebase")
-  end
-
-  if opts.no_remove then
-    table.insert(args, "--no-remove")
-  end
-
-  if opts.no_ff then
-    table.insert(args, "--no-ff")
-  end
-
-  if opts.stage then
-    table.insert(args, "--stage=" .. opts.stage)
-  end
-
-  if opts.yes then
-    table.insert(args, "--yes")
-  end
-
-  if opts.no_verify then
-    table.insert(args, "--no-verify")
-  end
-
-  local result = exec(args)
-  return result.code == 0
+  local ok, _ = cli.merge(target, opts)
+  return ok
 end
 
 ---Run a step command
@@ -232,15 +75,8 @@ end
 ---@param opts table|nil
 ---@return boolean
 function M.step(subcommand, opts)
-  opts = opts or {}
-  local args = { "step", subcommand }
-
-  if opts.stage then
-    table.insert(args, "--stage=" .. opts.stage)
-  end
-
-  local result = exec(args)
-  return result.code == 0
+  local ok, _ = cli.step(subcommand, opts)
+  return ok
 end
 
 return M

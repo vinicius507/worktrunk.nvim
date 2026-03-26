@@ -1,0 +1,261 @@
+*worktrunk.txt*  Git worktree management for Neovim
+
+================================================================================
+CONTENTS                                    *worktrunk-contents*
+
+1. Introduction ................................. |worktrunk-intro|
+2. Installation ................................. |worktrunk-installation|
+3. Configuration ................................ |worktrunk-configuration|
+4. Commands ..................................... |worktrunk-commands|
+5. Lua API ...................................... |worktrunk-lua-api|
+6. Health Check ................................. |worktrunk-health|
+
+================================================================================
+INTRODUCTION                                *worktrunk-intro*
+
+worktrunk.nvim is a Neovim plugin that provides tight integration with the
+worktrunk CLI tool for git worktree management.
+
+Features:
+- Worktree list with interactive picker
+- Worktree switch with automatic directory navigation
+- Worktree create from existing branches
+- Worktree remove with confirmation
+- Statusline component support
+- Command completion for branches and flags
+
+================================================================================
+INSTALLATION                                *worktrunk-installation*
+
+Requirements:
+- Neovim 0.9+
+- worktrunk CLI (wt) - https://worktrunk.dev
+
+Using lazy.nvim: >
+    {
+      "vinicius507/worktrunk.nvim",
+      dependencies = {},
+      config = function()
+        require("worktrunk").setup()
+      end,
+    }
+<
+
+Using packer.nvim: >
+    use {
+      "vinicius507/worktrunk.nvim",
+      config = function()
+        require("worktrunk").setup()
+      end,
+    }
+<
+
+================================================================================
+CONFIGURATION                               *worktrunk-configuration*
+
+You can configure worktrunk.nvim by calling setup() or by setting vim.g.worktrunk
+before the plugin is loaded.
+
+Configuration via setup(): >
+    require("worktrunk").setup({
+      wt_cmd = "wt",              -- Path to wt binary
+      auto_cd = true,             -- Auto-change directory on switch
+      confirm_remove = true,      -- Confirm before removing
+      enable_events = true,       -- Enable autocommands
+      ui = {
+        show_full_paths = false,
+        picker_width = 60,
+        show_preview = true,
+      },
+      hooks = {
+        async = true,
+        show_output = true,
+        timeout = 0,
+      },
+      pr = {
+        enabled = true,
+        tool = nil,               -- "gh" or "glab", auto-detect if nil
+      },
+    })
+<
+
+Configuration via vim.g.worktrunk: >
+    vim.g.worktrunk = {
+      auto_cd = false,
+      confirm_remove = false,
+    }
+<
+
+================================================================================
+COMMANDS                                    *worktrunk-commands*
+
+:Worktree [command] [args]                    *:Worktree*
+
+    Main command for worktrunk operations. Supports completion for
+    subcommands and arguments.
+
+Subcommands:
+
+:Worktree list [flags]                        *:Worktree-list*
+    List all worktrees interactively.
+    
+    Flags:
+    --branches      Show branches
+    --remotes       Show remote branches
+    --full          Show full details
+    --progressive   Show progressive details
+
+:Worktree switch [branch] [flags]             *:Worktree-switch*
+    Switch to a worktree.
+    
+    Flags:
+    -c, --create        Create new worktree
+    -b, --base=<ref>    Base branch for creation
+    -x, --execute=<cmd> Execute command after switch
+    --clobber           Overwrite existing worktree
+    --no-cd             Don't change directory
+    --branches          Show branch picker
+    --remotes           Show remote picker
+    -y, --yes           Auto-confirm
+    --no-verify         Skip hooks
+
+:Worktree remove [branch...] [flags]          *:Worktree-remove*
+    Remove one or more worktrees.
+    
+    Flags:
+    -f, --force             Force removal
+    -D, --force-delete      Force delete unmerged
+    --no-delete-branch     Don't delete branch
+    --foreground           Run in foreground
+    -y, --yes              Auto-confirm
+    --no-verify            Skip hooks
+
+:Worktree hooks [type]                        *:Worktree-hooks*
+    Show or run hooks.
+    
+    Hook types:
+    show, pre-switch, post-create, post-start,
+    post-switch, pre-commit, pre-merge, post-merge,
+    pre-remove, post-remove, approvals
+
+:Worktree current                             *:Worktree-current*
+    Show current worktree information.
+
+:Worktree merge [target] [flags]              *:Worktree-merge*
+    Merge current branch into target.
+    
+    Flags:
+    --no-squash     Don't squash commits
+    --no-commit     Don't create merge commit
+    --no-rebase     Don't rebase
+    --no-remove     Don't remove source branch
+    --no-ff         Create merge commit even if fast-forward
+    --stage=<mode>  Stage mode: all, tracked, none
+    -y, --yes       Auto-confirm
+    --no-verify     Skip hooks
+
+:Worktree step <subcommand> [flags]           *:Worktree-step*
+    Run step commands.
+    
+    Subcommands:
+    commit, squash, rebase, push, diff, copy-ignored
+    
+    Flags:
+    --stage=<mode>  Stage mode
+
+================================================================================
+LUA API                                     *worktrunk-lua-api*
+
+All functions are available via require("worktrunk").
+
+wt.list([{opts}])                             *worktrunk-lua-list*
+    List all worktrees.
+    
+    Parameters:
+    - {opts} (table|nil): Options including branches, remotes, full, progressive
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - result (table|string): Worktrees list or error message
+
+wt.switch({branch}, [{opts}])                 *worktrunk-lua-switch*
+    Switch to a worktree.
+    
+    Parameters:
+    - {branch} (string): Branch name
+    - {opts} (table|nil): Options including create, base, yes, no_verify
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - err (string|nil): Error message if failed
+
+wt.create({branch}, [{base}], [{opts}])       *worktrunk-lua-create*
+    Create a new worktree.
+    
+    Parameters:
+    - {branch} (string): Branch name
+    - {base} (string|nil): Base branch
+    - {opts} (table|nil): Additional options
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - err (string|nil): Error message if failed
+
+wt.remove({branch}, [{opts}])                 *worktrunk-lua-remove*
+    Remove a worktree.
+    
+    Parameters:
+    - {branch} (string): Branch name
+    - {opts} (table|nil): Options including force, yes, no_verify
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - err (string|nil): Error message if failed
+
+wt.current()                                  *worktrunk-lua-current*
+    Get current worktree.
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - result (table|nil|string): Current worktree or error message
+
+wt.merge([{target}], [{opts}])                *worktrunk-lua-merge*
+    Merge current branch into target.
+    
+    Parameters:
+    - {target} (string|nil): Target branch
+    - {opts} (table|nil): Options including no_squash, no_commit, stage, etc.
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - err (string|nil): Error message if failed
+
+wt.step({subcommand}, [{opts}])               *worktrunk-lua-step*
+    Run a step command.
+    
+    Parameters:
+    - {subcommand} (string): Step subcommand
+    - {opts} (table|nil): Options including stage
+    
+    Returns:
+    - ok (boolean): Success indicator
+    - err (string|nil): Error message if failed
+
+wt.statusline()                               *worktrunk-lua-statusline*
+    Get statusline component.
+    
+    Returns:
+    - (string): Statusline text showing current branch
+
+================================================================================
+HEALTH CHECK                                *worktrunk-health*
+
+Run :checkhealth worktrunk to verify your installation.
+
+The health check will verify:
+- worktrunk CLI (wt) is installed and accessible
+- Configuration is loaded
+- Optional dependencies (gh CLI for GitHub, glab CLI for GitLab)
+
+================================================================================
+ vim:tw=78:ts=8:ft=help:norl:

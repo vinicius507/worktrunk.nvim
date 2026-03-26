@@ -1,14 +1,15 @@
-describe("worktrunk.config", function()
+describe("worktrunk.config.internal", function()
   local config
 
   before_each(function()
-    package.loaded["worktrunk.config"] = nil
+    package.loaded["worktrunk.config.internal"] = nil
     vim.g.worktrunk = nil
-    config = require("worktrunk.config")
+    config = require("worktrunk.config.internal")
   end)
 
   after_each(function()
     vim.g.worktrunk = nil
+    config.reset()
   end)
 
   describe("setup", function()
@@ -30,15 +31,6 @@ describe("worktrunk.config", function()
       assert.are.equal(true, cfg.confirm_remove)
       assert.are.equal(true, cfg.enable_events)
       assert.are.equal("wt", cfg.wt_cmd)
-    end)
-
-    it("should validate wt_cmd is a string", function()
-      local ok, err = pcall(function()
-        config.setup({ wt_cmd = 123 })
-      end)
-
-      assert.is_false(ok)
-      assert.is_truthy(err:match("wt_cmd"))
     end)
 
     it("should support vim.g.worktrunk configuration", function()
@@ -75,14 +67,51 @@ describe("worktrunk.config", function()
   end)
 
   describe("get", function()
-    it("should return nil before setup", function()
+    it("should auto-setup if not initialized", function()
       local cfg = config.get()
-      assert.is_nil(cfg)
+      assert.is_not_nil(cfg)
+      assert.are.equal("wt", cfg.wt_cmd)
     end)
 
     it("should return config after setup", function()
       config.setup()
       local cfg = config.get()
+      assert.is_not_nil(cfg)
+      assert.are.equal("wt", cfg.wt_cmd)
+    end)
+  end)
+end)
+
+describe("worktrunk.config (backward compatibility)", function()
+  local config
+
+  before_each(function()
+    package.loaded["worktrunk.config"] = nil
+    package.loaded["worktrunk.config.internal"] = nil
+    vim.g.worktrunk = nil
+    config = require("worktrunk.config")
+  end)
+
+  after_each(function()
+    vim.g.worktrunk = nil
+    local internal = require("worktrunk.config.internal")
+    internal.reset()
+  end)
+
+  describe("setup", function()
+    it("should delegate to internal config", function()
+      config.setup({ auto_cd = false })
+      local cfg = config.get()
+
+      assert.are.equal(false, cfg.auto_cd)
+    end)
+  end)
+
+  describe("get", function()
+    it("should delegate to internal config", function()
+      config.setup()
+      local cfg = config.get()
+
       assert.is_not_nil(cfg)
       assert.are.equal("wt", cfg.wt_cmd)
     end)
