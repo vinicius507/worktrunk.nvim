@@ -19,8 +19,9 @@ function M.worktrees(worktrees, opts, on_select)
   local prompt = opts.prompt or "Select worktree:"
   local format_item = opts.format_item
     or function(worktree)
-      local current = require("worktrunk.api.cli").current()
-      local marker = current and current.branch == worktree.branch and "● " or "  "
+      local ok, current = require("worktrunk.api.cli").current()
+      local is_current = ok and current and type(current) == "table" and current.branch == worktree.branch
+      local marker = is_current and "● " or "  "
       return marker .. worktree.branch
     end
 

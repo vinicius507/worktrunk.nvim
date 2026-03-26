@@ -11,14 +11,11 @@ M.LEVEL = {
   ERROR = vim.log.levels.ERROR,
 }
 
----Plugin name prefix for notifications
-local PLUGIN_PREFIX = "worktrunk: "
-
 ---Send a notification
 ---@param message string
 ---@param level worktrunk.NotifyLevel
 function M.notify(message, level)
-  vim.notify(PLUGIN_PREFIX .. message, level or M.LEVEL.INFO)
+  vim.notify(message, level or M.LEVEL.INFO, { title = "worktrunk.nvim" })
 end
 
 ---Send an info notification
