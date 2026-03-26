@@ -53,11 +53,7 @@ end
 ---@return string|nil error
 function M.switch(branch, opts)
   M._ensure_initialized()
-  local ok, err = require("worktrunk.api.cli").switch(branch, opts)
-  if not ok and err then
-    require("worktrunk.ui.notify").error(err)
-  end
-  return ok, err
+  return require("worktrunk.api.cli").switch(branch, opts)
 end
 
 ---Create a new worktree
@@ -73,11 +69,7 @@ function M.create(branch, base, opts)
   if base then
     opts.base = base
   end
-  local ok, err = require("worktrunk.api.cli").switch(branch, opts)
-  if not ok and err then
-    require("worktrunk.ui.notify").error(err)
-  end
-  return ok, err
+  return require("worktrunk.api.cli").switch(branch, opts)
 end
 
 ---Merge current branch into target
@@ -87,11 +79,7 @@ end
 ---@return string|nil error
 function M.merge(target, opts)
   M._ensure_initialized()
-  local ok, err = require("worktrunk.api.cli").merge(target, opts)
-  if not ok and err then
-    require("worktrunk.ui.notify").error(err)
-  end
-  return ok, err
+  return require("worktrunk.api.cli").merge(target, opts)
 end
 
 ---Run a step command
@@ -101,11 +89,7 @@ end
 ---@return string|nil error
 function M.step(subcommand, opts)
   M._ensure_initialized()
-  local ok, err = require("worktrunk.api.cli").step(subcommand, opts)
-  if not ok and err then
-    require("worktrunk.ui.notify").error(err)
-  end
-  return ok, err
+  return require("worktrunk.api.cli").step(subcommand, opts)
 end
 
 ---Remove a worktree
@@ -115,11 +99,7 @@ end
 ---@return string|nil error
 function M.remove(branch, opts)
   M._ensure_initialized()
-  local ok, err = require("worktrunk.api.cli").remove(branch, opts)
-  if not ok and err then
-    require("worktrunk.ui.notify").error(err)
-  end
-  return ok, err
+  return require("worktrunk.api.cli").remove(branch, opts)
 end
 
 ---Run a hook (placeholder implementation)
@@ -127,7 +107,7 @@ end
 ---@param opts table|nil Hook options
 function M.run_hook(hook_type, opts)
   M._ensure_initialized()
-  require("worktrunk.ui.notify").info("Running hook: " .. hook_type)
+  -- Hook implementation placeholder
 end
 
 ---Get current worktree

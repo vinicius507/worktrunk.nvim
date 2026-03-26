@@ -3,6 +3,9 @@
 
 local M = {}
 
+-- Local notify module reference for consistent notifications
+local notify = require("worktrunk.ui.notify")
+
 ---@class worktrunk.Subcommand
 ---@field impl fun(args: string[], opts: table)
 ---@field complete fun(arglead: string, cmdline: string, cursorpos: number): string[]
@@ -64,6 +67,9 @@ local function parse_switch_args(args)
       opts.yes = true
     elseif arg == "--no-verify" then
       opts.no_verify = true
+    elseif arg == "-" or arg == "@" or arg:match("^pr:%d+") or arg:match("^mr:%d+") then
+      -- Special shortcuts for branches
+      branch = arg
     elseif not arg:match("^-") and not branch then
       branch = arg
     end
@@ -323,7 +329,6 @@ M.subcommands.list = {
   impl = function(args, _)
     local opts = parse_list_args(args)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
     local picker = require("worktrunk.ui.picker")
 
     local ok, result = api.list(opts)
@@ -359,7 +364,6 @@ M.subcommands.switch = {
   impl = function(args, _)
     local branch, opts = parse_switch_args(args)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
     local picker = require("worktrunk.ui.picker")
 
     if not branch then
@@ -377,6 +381,12 @@ M.subcommands.switch = {
           local switch_ok, switch_err = api.switch(choice.branch, opts)
           if not switch_ok then
             notify.error("Failed to switch: " .. tostring(switch_err))
+          else
+            if opts.create then
+              notify.success("Created worktree '" .. choice.branch .. "'")
+            else
+              notify.success("Switched to worktree '" .. choice.branch .. "'")
+            end
           end
         end
       end)
@@ -384,6 +394,12 @@ M.subcommands.switch = {
       local ok, err = api.switch(branch, opts)
       if not ok then
         notify.error("Failed to switch: " .. tostring(err))
+      else
+        if opts.create then
+          notify.success("Created worktree '" .. branch .. "'")
+        else
+          notify.success("Switched to worktree '" .. branch .. "'")
+        end
       end
     end
   end,
@@ -391,7 +407,7 @@ M.subcommands.switch = {
     local args = vim.split(cmdline, " ", { trimempty = true })
     table.remove(args, 1)
 
-    if arglead:match("^%--") then
+    if arglead:match("^%-%-") then
       return complete_switch_flags(arglead)
     end
     return complete_branches(arglead)
@@ -449,7 +465,7 @@ M.subcommands.remove = {
     end
   end,
   complete = function(arglead, _, _)
-    if arglead:match("^%--") then
+    if arglead:match("^%-%-") then
       return complete_remove_flags(arglead)
     end
     return complete_branches(arglead)
@@ -460,7 +476,6 @@ M.subcommands.remove = {
 M.subcommands.hooks = {
   impl = function(args, _)
     local hook_type = args[1]
-    local notify = require("worktrunk.ui.notify")
 
     if not hook_type then
       notify.info(
@@ -498,7 +513,6 @@ M.subcommands.hooks = {
 M.subcommands.current = {
   impl = function(_, _)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
 
     local ok, result = api.current()
     if not ok then
@@ -507,9 +521,9 @@ M.subcommands.current = {
     end
 
     if result then
-      print("Current: " .. result.branch .. " at " .. result.path)
+      notify.info("Current: " .. result.branch .. " at " .. result.path)
     else
-      print("Not in a worktree")
+      notify.warn("Not in a worktree")
     end
   end,
   complete = function(_, _, _)
@@ -522,7 +536,6 @@ M.subcommands.merge = {
   impl = function(args, _)
     local target, opts = parse_merge_args(args)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
 
     local ok, err = api.merge(target, opts)
     if not ok then
@@ -532,8 +545,8 @@ M.subcommands.merge = {
     end
   end,
   complete = function(arglead, _, _)
-    if arglead:match("^%--") then
-      return complete_merge_flags(arglead)
+    if arglead:match("^%-%-") then
+      return complete_list_flags(arglead)
     end
     return complete_branches(arglead)
   end,
