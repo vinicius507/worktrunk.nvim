@@ -18,12 +18,8 @@ function M.mock_vim_system(result)
 end
 
 function M.mock_wt_list_output(worktrees)
-  local stdout = table.concat(
-    vim.tbl_map(function(w)
-      return w.branch .. " " .. w.path
-    end, worktrees),
-    "\n"
-  )
+  -- Return JSON format as expected by the CLI
+  local stdout = vim.json.encode(worktrees)
   return {
     code = 0,
     stdout = stdout,

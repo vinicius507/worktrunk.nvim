@@ -45,6 +45,9 @@ function M.parse_switch_args(args)
       opts.yes = true
     elseif arg == "--no-verify" then
       opts.no_verify = true
+    elseif arg == "-" or arg == "@" or arg:match("^pr:%d+") or arg:match("^mr:%d+") then
+      -- Special shortcuts for branches
+      branch = arg
     elseif not arg:match("^-") and not branch then
       branch = arg
     end
