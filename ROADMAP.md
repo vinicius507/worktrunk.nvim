@@ -1,0 +1,4 @@
+- Improve types documentation
+- Clear up code duplication and improve AI slop
+- Update skills focused on plugin development and worktrunk
+- Add more examples
