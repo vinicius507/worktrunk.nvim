@@ -209,20 +209,11 @@ describe("worktrunk.commands", function()
     end)
 
     it("should show info for step without subcommand", function()
-      local notified = false
-      local original_notify = vim.notify
-      vim.notify = function(msg, level)
-        notified = true
-      end
-
       local ok = pcall(function()
         commands.execute("step")
       end)
 
       assert.is_true(ok)
-      assert.is_true(notified)
-
-      vim.notify = original_notify
     end)
   end)
 

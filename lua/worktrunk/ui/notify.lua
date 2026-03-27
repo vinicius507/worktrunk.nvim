@@ -55,4 +55,12 @@ function M.failure(operation, err)
   M.error(operation .. " failed: " .. err)
 end
 
+---Echo a message to the command line (not a notification)
+---@param message string
+---@param hl_group string|nil
+function M.echo(message, hl_group)
+  hl_group = hl_group or "Normal"
+  vim.api.nvim_echo({{ message, hl_group }}, false, {})
+end
+
 return M

@@ -478,7 +478,7 @@ M.subcommands.hooks = {
     local hook_type = args[1]
 
     if not hook_type then
-      notify.info(
+      notify.echo(
         "Available hooks: show, pre-switch, post-create, post-start, post-switch, pre-commit, pre-merge, post-merge, pre-remove, post-remove, approvals"
       )
       return
@@ -499,7 +499,7 @@ M.subcommands.hooks = {
     }
 
     if valid_hooks[hook_type] then
-      notify.info("Running hook: " .. hook_type)
+      notify.success("Running hook: " .. hook_type)
     else
       notify.error("Unknown hook type: " .. hook_type)
     end
@@ -521,7 +521,7 @@ M.subcommands.current = {
     end
 
     if result then
-      notify.info("Current: " .. result.branch .. " at " .. result.path)
+      notify.echo("Current: " .. result.branch .. " at " .. result.path)
     else
       notify.warn("Not in a worktree")
     end
@@ -560,7 +560,7 @@ M.subcommands.step = {
     local notify = require("worktrunk.ui.notify")
 
     if not subcommand then
-      notify.info("Available step commands: commit, squash, rebase, push, diff, copy-ignored")
+      notify.echo("Available step commands: commit, squash, rebase, push, diff, copy-ignored")
       return
     end
 
