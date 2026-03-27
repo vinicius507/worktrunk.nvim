@@ -327,31 +327,35 @@ M.subcommands = {}
 -- List subcommand
 M.subcommands.list = {
   impl = function(args, _)
-    local opts = parse_list_args(args)
-    local api = require("worktrunk.api.cli")
-    local picker = require("worktrunk.ui.picker")
+    vim.schedule(function()
+      local opts = parse_list_args(args)
+      local api = require("worktrunk.api.cli")
+      local picker = require("worktrunk.ui.picker")
 
-    local ok, result = api.list(opts)
-    if not ok then
-      notify.error("Failed to list worktrees: " .. tostring(result))
-      return
-    end
-
-    local worktrees = result
-    if #worktrees == 0 then
-      notify.warn("No worktrees found")
-      return
-    end
-
-    picker.worktrees(worktrees, {
-      prompt = "Select worktree:",
-    }, function(choice)
-      if choice then
-        local switch_ok, switch_err = api.switch(choice.branch)
-        if not switch_ok then
-          notify.error("Failed to switch: " .. tostring(switch_err))
-        end
+      local ok, result = api.list(opts)
+      if not ok then
+        notify.error("Failed to list worktrees: " .. tostring(result))
+        return
       end
+
+      local worktrees = result
+      if #worktrees == 0 then
+        notify.warn("No worktrees found")
+        return
+      end
+
+      picker.worktrees(worktrees, {
+        prompt = "Select worktree:",
+      }, function(choice)
+        if choice then
+          vim.schedule(function()
+            local switch_ok, switch_err = api.switch(choice.branch)
+            if not switch_ok then
+              notify.error("Failed to switch: " .. tostring(switch_err))
+            end
+          end)
+        end
+      end)
     end)
   end,
   complete = function(arglead, _, _)
@@ -368,27 +372,31 @@ M.subcommands.switch = {
 
     if not branch then
       -- Interactive mode - show picker
-      local ok, result = api.list()
-      if not ok then
-        notify.error("Failed to list worktrees: " .. tostring(result))
-        return
-      end
-
-      picker.worktrees(result, {
-        prompt = "Switch to worktree:",
-      }, function(choice)
-        if choice then
-          local switch_ok, switch_err = api.switch(choice.branch, opts)
-          if not switch_ok then
-            notify.error("Failed to switch: " .. tostring(switch_err))
-          else
-            if opts.create then
-              notify.success("Created worktree '" .. choice.branch .. "'")
-            else
-              notify.success("Switched to worktree '" .. choice.branch .. "'")
-            end
-          end
+      vim.schedule(function()
+        local ok, result = api.list()
+        if not ok then
+          notify.error("Failed to list worktrees: " .. tostring(result))
+          return
         end
+
+        picker.worktrees(result, {
+          prompt = "Switch to worktree:",
+        }, function(choice)
+          if choice then
+            vim.schedule(function()
+              local switch_ok, switch_err = api.switch(choice.branch, opts)
+              if not switch_ok then
+                notify.error("Failed to switch: " .. tostring(switch_err))
+              else
+                if opts.create then
+                  notify.success("Created worktree '" .. choice.branch .. "'")
+                else
+                  notify.success("Switched to worktree '" .. choice.branch .. "'")
+                end
+              end
+            end)
+          end
+        end)
       end)
     else
       local ok, err = api.switch(branch, opts)
@@ -445,18 +453,22 @@ M.subcommands.remove = {
     end
 
     if #branches == 0 then
-      local ok, result = api.list()
-      if not ok then
-        notify.error("Failed to list worktrees: " .. tostring(result))
-        return
-      end
-
-      picker.worktrees(result, {
-        prompt = "Remove worktree:",
-      }, function(choice)
-        if choice then
-          confirm_remove(choice.branch)
+      vim.schedule(function()
+        local ok, result = api.list()
+        if not ok then
+          notify.error("Failed to list worktrees: " .. tostring(result))
+          return
         end
+
+        picker.worktrees(result, {
+          prompt = "Remove worktree:",
+        }, function(choice)
+          if choice then
+            vim.schedule(function()
+              confirm_remove(choice.branch)
+            end)
+          end
+        end)
       end)
     else
       for _, branch in ipairs(branches) do
