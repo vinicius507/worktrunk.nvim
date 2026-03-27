@@ -60,7 +60,7 @@ end
 ---@param hl_group string|nil
 function M.echo(message, hl_group)
   hl_group = hl_group or "Normal"
-  vim.api.nvim_echo({{ message, hl_group }}, false, {})
+  vim.api.nvim_echo({ { message, hl_group } }, false, {})
 end
 
 return M
