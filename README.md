@@ -258,12 +258,24 @@ vim.g.worktrunk = {
 
 ### Keymaps
 
+The plugin provides `<Plug>` mappings that you can bind to your preferred keys:
+
+| Mapping | Description |
+|---------|-------------|
+| `<Plug>(WorktreeList)` | Open worktree picker |
+| `<Plug>(WorktreeSwitch)` | Open switch worktree picker |
+| `<Plug>(WorktreeRemove)` | Open remove worktree picker |
+| `<Plug>(WorktreeMerge)` | Open merge command |
+| `<Plug>(WorktreeStep)` | Open step command picker |
+| `<Plug>(WorktreeHooks)` | Open hooks menu |
+| `<Plug>(WorktreeCurrent)` | Show current worktree info |
+
+Example keymaps:
+
 ```lua
--- Suggested keymaps
 vim.keymap.set("n", "<leader>gwl", "<Plug>(WorktreeList)", { desc = "List worktrees" })
 vim.keymap.set("n", "<leader>gws", "<Plug>(WorktreeSwitch)", { desc = "Switch worktree" })
-vim.keymap.set("n", "<leader>gwc", "<Plug>(WorktreeCreate)", { desc = "Create worktree" })
-vim.keymap.set("n", "<leader>gwd", "<Plug>(WorktreeRemove)", { desc = "Delete worktree" })
+vim.keymap.set("n", "<leader>gwr", "<Plug>(WorktreeRemove)", { desc = "Remove worktree" })
 ```
 
 ### Lua API

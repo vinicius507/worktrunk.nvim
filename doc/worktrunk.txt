@@ -7,8 +7,9 @@ CONTENTS                                    *worktrunk-contents*
 2. Installation ................................. |worktrunk-installation|
 3. Configuration ................................ |worktrunk-configuration|
 4. Commands ..................................... |worktrunk-commands|
-5. Lua API ...................................... |worktrunk-lua-api|
-6. Health Check ................................. |worktrunk-health|
+5. Keymaps ...................................... |worktrunk-keymaps|
+6. Lua API ...................................... |worktrunk-lua-api|
+7. Health Check ................................. |worktrunk-health|
 
 ================================================================================
 INTRODUCTION                                *worktrunk-intro*
@@ -21,8 +22,12 @@ Features:
 - Worktree switch with automatic directory navigation
 - Worktree create from existing branches
 - Worktree remove with confirmation
-- Statusline component support
-- Command completion for branches and flags
+- Worktree merge with various options
+- Worktree step commands (commit, squash, rebase, push, diff, copy-ignored)
+- Hooks support for automation
+- Pure vim.ui (no telescope/snacks dependencies)
+- Command completion for subcommands and branch names
+- PR/MR shortcuts (pr:123, mr:456)
 
 ================================================================================
 INSTALLATION                                *worktrunk-installation*
@@ -48,6 +53,14 @@ Using packer.nvim: >
         require("worktrunk").setup()
       end,
     }
+<
+
+Using vim.pack (Neovim 0.11+): >
+    vim.pack.add({
+      "https://github.com/vinicius507/worktrunk.nvim",
+    })
+
+    require("worktrunk").setup()
 <
 
 ================================================================================
@@ -162,6 +175,37 @@ Subcommands:
     
     Flags:
     --stage=<mode>  Stage mode
+
+================================================================================
+KEYMAPS                                     *worktrunk-keymaps*
+
+The plugin provides <Plug> mappings for common operations:
+
+<Plug>(WorktreeList)                        *<Plug>(WorktreeList)*
+    Open the worktree list picker.
+
+<Plug>(WorktreeSwitch)                      *<Plug>(WorktreeSwitch)*
+    Open the switch worktree picker.
+
+<Plug>(WorktreeRemove)                      *<Plug>(WorktreeRemove)*
+    Open the remove worktree picker.
+
+<Plug>(WorktreeMerge)                       *<Plug>(WorktreeMerge)*
+    Open the merge command.
+
+<Plug>(WorktreeStep)                        *<Plug>(WorktreeStep)*
+    Open the step command picker.
+
+<Plug>(WorktreeHooks)                       *<Plug>(WorktreeHooks)*
+    Show available hooks.
+
+<Plug>(WorktreeCurrent)                     *<Plug>(WorktreeCurrent)*
+    Show current worktree information.
+
+Example usage: >
+    vim.keymap.set("n", "<leader>gwl", "<Plug>(WorktreeList)")
+    vim.keymap.set("n", "<leader>gws", "<Plug>(WorktreeSwitch)")
+<
 
 ================================================================================
 LUA API                                     *worktrunk-lua-api*
