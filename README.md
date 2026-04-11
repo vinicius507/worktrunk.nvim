@@ -332,9 +332,8 @@ wt.step("push")
 wt.step("diff")
 wt.step("copy-ignored")
 
--- Run hooks
-wt.run_hook("pre-switch")
-wt.run_hook("post-create")
+-- Run hooks (placeholder - not yet implemented)
+-- wt.run_hook("pre-switch")
 
 -- Get current worktree
 local ok, current = wt.current()
@@ -386,37 +385,6 @@ Run `:checkhealth worktrunk` to verify your installation. This checks:
 - worktrunk CLI (`wt`) availability
 - Configuration validity
 - Optional dependencies (`gh`, `glab`)
-
-## Events
-
-When `enable_events` is enabled (default), the plugin emits the following user autocommands:
-
-```lua
--- Worktree switched
-vim.api.nvim_create_autocmd("User", {
-  pattern = "WorktreeSwitched",
-  callback = function(args)
-    local data = args.data  -- { branch = "...", path = "..." }
-    print("Switched to " .. data.branch)
-  end,
-})
-
--- Worktree created
-vim.api.nvim_create_autocmd("User", {
-  pattern = "WorktreeCreated",
-  callback = function(args)
-    local data = args.data  -- { branch = "...", path = "..." }
-  end,
-})
-
--- Worktree removed
-vim.api.nvim_create_autocmd("User", {
-  pattern = "WorktreeRemoved",
-  callback = function(args)
-    local data = args.data  -- { branch = "..." }
-  end,
-})
-```
 
 ## License
 
