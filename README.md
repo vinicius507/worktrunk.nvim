@@ -47,6 +47,16 @@ use {
 }
 ```
 
+### Using `vim.pack` (Neovim 0.11+)
+
+```lua
+vim.pack.add({
+  "https://github.com/vinicius507/worktrunk.nvim",
+})
+
+require("worktrunk").setup()
+```
+
 ## Configuration
 
 ```lua
