@@ -2,7 +2,8 @@ local M = {}
 
 function M.mock_vim_system(result)
   local original = vim.system
-  vim.system = function(cmd, opts, callback)
+  vim.system = function(cmd, opts_or_callback)
+    local callback = type(opts_or_callback) == "function" and opts_or_callback
     if callback then
       callback(result)
     end

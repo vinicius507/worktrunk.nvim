@@ -10,9 +10,6 @@ local notify = require("worktrunk.ui.notify")
 ---@field impl fun(args: string[], opts: table)
 ---@field complete fun(arglead: string, cmdline: string, cursorpos: number): string[]
 
--- Forward declarations
-local cmd_list, cmd_switch, cmd_remove, cmd_hooks, cmd_current, cmd_merge, cmd_step
-
 ---Get all worktree branches for completion
 ---@return string[]
 local function get_branches()
@@ -411,7 +408,7 @@ M.subcommands.switch = {
       end
     end
   end,
-  complete = function(arglead, cmdline, cursorpos)
+  complete = function(arglead, cmdline, _cursorpos)
     local args = vim.split(cmdline, " ", { trimempty = true })
     table.remove(args, 1)
 
@@ -427,7 +424,6 @@ M.subcommands.remove = {
   impl = function(args, _)
     local branches, opts = parse_remove_args(args)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
     local picker = require("worktrunk.ui.picker")
     local config = require("worktrunk.config.internal").get()
 
@@ -558,7 +554,7 @@ M.subcommands.merge = {
   end,
   complete = function(arglead, _, _)
     if arglead:match("^%-%-") then
-      return complete_list_flags(arglead)
+      return complete_merge_flags(arglead)
     end
     return complete_branches(arglead)
   end,
@@ -569,7 +565,6 @@ M.subcommands.step = {
   impl = function(args, _)
     local subcommand, opts = parse_step_args(args)
     local api = require("worktrunk.api.cli")
-    local notify = require("worktrunk.ui.notify")
 
     if not subcommand then
       notify.echo("Available step commands: commit, squash, rebase, push, diff, copy-ignored")
