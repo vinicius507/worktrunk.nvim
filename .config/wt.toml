@@ -1,3 +1,3 @@
-[post-create]
+[pre-start]
 copy-ignored = "wt step copy-ignored"
 
